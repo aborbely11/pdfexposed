@@ -47,7 +47,6 @@ def analyze_pdf(file_path):
                         key_decoded = decode_with_fallback(key)
                         value_decoded = decode_with_fallback(value)
                         
-                        # Printar apenas uma vez o campo Author
                         if "author" in key_decoded.lower():
                             print(f"→ Author encontrado nos metadados: {value_decoded}")
                         elif "creator" in key_decoded.lower():
