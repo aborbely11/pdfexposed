@@ -64,7 +64,6 @@ def analyze_pdf(file_path):
         print(f"Erro geral ao analisar metadados: {e}\n")
 
     # Extrair texto do PDF
-    print("\nExtração de Texto do PDF:")
     try:
         text = extract_text(file_path)
         if text.strip():
