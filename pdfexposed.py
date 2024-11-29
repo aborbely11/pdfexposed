@@ -78,7 +78,7 @@ def analyze_pdf(file_path):
 
             # Procurar por sistemas operacionais ou softwares
             print("\nProcurando por informações de sistema operacional ou software:")
-            os_info = re.findall(r'(Windows|Linux|macOS|Ubuntu|Fedora|Android|iOS)[\s\w\d.]*', text, re.IGNORECASE)
+            os_info = re.findall(r'(Windows|Linux|macOS|Ubuntu|Fedora|Android)[\s\w\d.]*', text, re.IGNORECASE)
             if os_info:
                 print(f"  Sistemas operacionais mencionados: {', '.join(set(os_info))}")
             else:
