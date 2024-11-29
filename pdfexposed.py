@@ -28,6 +28,8 @@ def analyze_pdf(file_path):
         print("Arquivo não encontrado!")
         return
 
+    print(f"Analisando o arquivo: {file_path}\n")
+
     # Detalhes básicos do arquivo
     print("Detalhes do Arquivo:")
     print(f"- Nome do arquivo: {os.path.basename(file_path)}")
@@ -44,15 +46,16 @@ def analyze_pdf(file_path):
                     for key, value in metadata.items():
                         key_decoded = decode_with_fallback(key)
                         value_decoded = decode_with_fallback(value)
-                        print(f"  {key_decoded}: {value_decoded}")
                         
-                        # Identificar campos importantes
+                        # Printar apenas uma vez o campo Author
                         if "author" in key_decoded.lower():
-                            print(f"\n→ Author encontrado nos metadados: {value_decoded}\n")
-                        if "creator" in key_decoded.lower():
-                            print(f"    → Programa usado para criar: {value_decoded}")
-                        if "producer" in key_decoded.lower():
-                            print(f"    → Versão do programa: {value_decoded}")
+                            print(f"→ Author encontrado nos metadados: {value_decoded}")
+                        elif "creator" in key_decoded.lower():
+                            print(f"  Creator: {value_decoded}")
+                        elif "producer" in key_decoded.lower():
+                            print(f"  Producer: {value_decoded}")
+                        else:
+                            print(f"  {key_decoded}: {value_decoded}")
             else:
                 print("  Nenhum metadado encontrado.")
     except PDFSyntaxError as e:
@@ -75,7 +78,7 @@ def analyze_pdf(file_path):
 
             # Procurar por sistemas operacionais ou softwares
             print("\nProcurando por informações de sistema operacional ou software:")
-            os_info = re.findall(r'(Windows|Linux|macOS|Ubuntu|Fedora|Android)[\s\w\d.]*', text, re.IGNORECASE)
+            os_info = re.findall(r'(Windows|Linux|macOS|Ubuntu|Fedora|Android|iOS)[\s\w\d.]*', text, re.IGNORECASE)
             if os_info:
                 print(f"  Sistemas operacionais mencionados: {', '.join(set(os_info))}")
             else:
