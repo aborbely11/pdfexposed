@@ -28,8 +28,6 @@ def analyze_pdf(file_path):
         print("Arquivo não encontrado!")
         return
 
-    print(f"Analisando o arquivo: {file_path}\n")
-
     # Detalhes básicos do arquivo
     print("Detalhes do Arquivo:")
     print(f"- Nome do arquivo: {os.path.basename(file_path)}")
