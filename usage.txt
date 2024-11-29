@@ -1,2 +1,2 @@
 python pdfexposed.py
-Digite o caminho do arquivo PDF: /home/kali/Downloads/cv.pdf
+Enter the PDF file path: /home/kali/Downloads/cv.pdf
