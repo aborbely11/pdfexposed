@@ -12,5 +12,4 @@ Created by:
 Artur Borbely
 
 Collaborator:
-
 Adriano Vallim
