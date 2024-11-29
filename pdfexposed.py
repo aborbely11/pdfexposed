@@ -25,18 +25,18 @@ def decode_with_fallback(value):
 def analyze_pdf(file_path):
     # Verificar se o arquivo existe
     if not os.path.exists(file_path):
-        print("Arquivo não encontrado!")
+        print("File not Found!")
         return
 
-    print(f"Analisando o arquivo: {file_path}\n")
+    print(f"Analyzing the file: {file_path}\n")
 
     # Detalhes básicos do arquivo
-    print("Detalhes do Arquivo:")
-    print(f"- Nome do arquivo: {os.path.basename(file_path)}")
-    print(f"- Tamanho: {os.path.getsize(file_path)} bytes\n")
+    print("Path Details:")
+    print(f"- Filename: {os.path.basename(file_path)}")
+    print(f"- Size: {os.path.getsize(file_path)} bytes\n")
 
     # Analisar metadados
-    print("Metadados do PDF:")
+    print("Metadata:")
     try:
         with open(file_path, 'rb') as f:
             parser = PDFParser(f)
@@ -56,41 +56,41 @@ def analyze_pdf(file_path):
                         else:
                             print(f"  {key_decoded}: {value_decoded}")
             else:
-                print("  Nenhum metadado encontrado.")
+                print("  Not Found.")
     except PDFSyntaxError as e:
-        print(f"Erro ao analisar metadados: {e}\n")
+        print(f"Error analyzing metadata: {e}\n")
     except Exception as e:
-        print(f"Erro geral ao analisar metadados: {e}\n")
+        print(f"General error analyzing metadata: {e}\n")
 
     # Extrair texto do PDF
     try:
         text = extract_text(file_path)
         if text.strip():
             # Procurar por e-mails no texto
-            print("Procurando por e-mails no conteúdo do PDF:")
+            print("Searching for e-mails:")
             emails = re.findall(r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}', text)
             if emails:
-                print(f"  E-mails encontrados: {', '.join(emails)}")
+                print(f"  E-mails Found: {', '.join(emails)}")
             else:
-                print("  Nenhum e-mail encontrado.")
+                print("  No emails found.")
 
             # Procurar por sistemas operacionais ou softwares
-            print("\nProcurando por informações de sistema operacional ou software:")
+            print("\nSearching for operating system or software information:")
             os_info = re.findall(r'(Windows|Linux|macOS|Ubuntu|Fedora|Android)[\s\w\d.]*', text, re.IGNORECASE)
             if os_info:
-                print(f"  Sistemas operacionais mencionados: {', '.join(set(os_info))}")
+                print(f"  Operating systems mentioned: {', '.join(set(os_info))}")
             else:
-                print("  Nenhuma informação de sistema operacional identificada.")
+                print("  No operating system information identified.")
         else:
-            print("Nenhum texto extraído.")
+            print("No text extracted.")
     except Exception as e:
-        print(f"Erro ao extrair texto: {e}")
+        print(f"Error extracting text: {e}")
 
-    print("\nAnálise Concluída!\n")
+    print("\nAnalysis Completed!\n")
 
 
 if __name__ == "__main__":
     # Caminho para o arquivo PDF a ser analisado
-    pdf_file_path = input("Digite o caminho do arquivo PDF: ").strip()
+    pdf_file_path = input("Enter the PDF file path: ").strip()
     analyze_pdf(pdf_file_path)
 
