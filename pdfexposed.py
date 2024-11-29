@@ -6,6 +6,21 @@ from pdfminer.pdfdocument import PDFDocument
 from pdfminer.pdfparser import PDFParser
 from pdfminer.pdfpage import PDFPage
 
+# Lista de encodings comuns para tentar
+ENCODINGS = ['utf-8', 'latin-1', 'utf-16', 'utf-16le', 'utf-16be', 'ascii', 'cp1252']
+
+
+def decode_with_fallback(value):
+    """
+    Decodifica um valor de bytes usando uma lista de encodings comuns.
+    """
+    for encoding in ENCODINGS:
+        try:
+            return value.decode(encoding)
+        except (UnicodeDecodeError, AttributeError):
+            continue
+    return value  # Retorna o original caso todos os encodings falhem
+
 
 def analyze_pdf(file_path):
     # Verificar se o arquivo existe
@@ -29,19 +44,17 @@ def analyze_pdf(file_path):
             if document.info:
                 for metadata in document.info:
                     for key, value in metadata.items():
-                        key_decoded = key.decode("utf-8", errors="ignore")
-                        value_decoded = value.decode("utf-8", errors="ignore")
+                        key_decoded = decode_with_fallback(key)
+                        value_decoded = decode_with_fallback(value)
                         print(f"  {key_decoded}: {value_decoded}")
                         
-                        # Verificar informações adicionais nos metadados
+                        # Identificar campos importantes
+                        if "author" in key_decoded.lower():
+                            print(f"\n→ Author encontrado nos metadados: {value_decoded}\n")
                         if "creator" in key_decoded.lower():
                             print(f"    → Programa usado para criar: {value_decoded}")
                         if "producer" in key_decoded.lower():
                             print(f"    → Versão do programa: {value_decoded}")
-                        if "os" in key_decoded.lower():
-                            print(f"    → Sistema operacional identificado: {value_decoded}")
-                        if "location" in key_decoded.lower() or "path" in key_decoded.lower():
-                            print(f"    → Caminho ou localização antes de ser salvo: {value_decoded}")
             else:
                 print("  Nenhum metadado encontrado.")
     except PDFSyntaxError as e:
@@ -49,43 +62,11 @@ def analyze_pdf(file_path):
     except Exception as e:
         print(f"Erro geral ao analisar metadados: {e}\n")
 
-    # Verificar a presença de elementos suspeitos
-    print("\nAnálise de Elementos Suspeitos:")
-    try:
-        with open(file_path, 'rb') as f:
-            parser = PDFParser(f)
-            document = PDFDocument(parser)
-
-            suspicious_elements = {
-                "/JavaScript": 0,
-                "/JS": 0,
-                "/AA": 0,
-                "/OpenAction": 0,
-                "/EmbeddedFile": 0,
-                "/RichMedia": 0,
-                "/Launch": 0
-            }
-
-            for page in PDFPage.create_pages(document):
-                if page.annots:
-                    annotations = page.annots.resolve()
-                    for key in suspicious_elements.keys():
-                        if key in annotations:
-                            suspicious_elements[key] += 1
-
-            for key, count in suspicious_elements.items():
-                if count > 0:
-                    print(f"  {key}: {count} ocorrência(s) encontrada(s)")
-    except Exception as e:
-        print(f"Erro ao verificar elementos suspeitos: {e}\n")
-
-    # Extrair texto (limitado a 500 caracteres)
+    # Extrair texto do PDF
     print("\nExtração de Texto do PDF:")
     try:
         text = extract_text(file_path)
         if text.strip():
-            print(f"Texto extraído (primeiros 500 caracteres):\n{text[:500]}...\n")
-            
             # Procurar por e-mails no texto
             print("Procurando por e-mails no conteúdo do PDF:")
             emails = re.findall(r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}', text)
@@ -94,9 +75,9 @@ def analyze_pdf(file_path):
             else:
                 print("  Nenhum e-mail encontrado.")
 
-            # Procurar por versões de sistemas operacionais ou softwares
+            # Procurar por sistemas operacionais ou softwares
             print("\nProcurando por informações de sistema operacional ou software:")
-            os_info = re.findall(r'(Windows|Linux|macOS|Ubuntu|Fedora|Android|iOS)[\s\w\d.]*', text, re.IGNORECASE)
+            os_info = re.findall(r'(Windows|Linux|macOS|Ubuntu|Fedora|Android)[\s\w\d.]*', text, re.IGNORECASE)
             if os_info:
                 print(f"  Sistemas operacionais mencionados: {', '.join(set(os_info))}")
             else:
@@ -113,3 +94,4 @@ if __name__ == "__main__":
     # Caminho para o arquivo PDF a ser analisado
     pdf_file_path = input("Digite o caminho do arquivo PDF: ").strip()
     analyze_pdf(pdf_file_path)
+
