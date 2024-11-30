@@ -1,5 +1,6 @@
 import os
 import re
+import readline  # Para autocomplete no Linux
 from pdfminer.high_level import extract_text
 from pdfminer.pdfparser import PDFSyntaxError
 from pdfminer.pdfdocument import PDFDocument
@@ -22,11 +23,31 @@ def decode_with_fallback(value):
     return value  # Retorna o original caso todos os encodings falhem
 
 
+def complete_path(text, state):
+    """
+    Função de autocomplete para caminhos de arquivos.
+    """
+    line = readline.get_line_buffer().split()
+    if not line:
+        return [os.path.join('.', f) for f in os.listdir('.')][state]
+    path = os.path.expanduser(text)
+    if os.path.isdir(path):
+        return [os.path.join(path, f) for f in os.listdir(path)][state]
+    else:
+        return [f for f in glob.glob(path + '*')][state]
+
+
 def analyze_pdf(file_path):
+    # Remover aspas do caminho, se existirem
+    file_path = file_path.strip("'\"")
+
     # Verificar se o arquivo existe
     if not os.path.exists(file_path):
         print("File not Found!")
         return
+
+    # Mostrar onde o arquivo está salvo
+    print(f"File Location: {os.path.abspath(file_path)}\n")
 
     print(f"Analyzing the file: {file_path}\n")
 
@@ -35,12 +56,18 @@ def analyze_pdf(file_path):
     print(f"- Filename: {os.path.basename(file_path)}")
     print(f"- Size: {os.path.getsize(file_path)} bytes\n")
 
-    # Analisar metadados
+    os_detected = set()
+
+    # Analisar metadados e número de páginas
     print("Metadata:")
     try:
         with open(file_path, 'rb') as f:
             parser = PDFParser(f)
             document = PDFDocument(parser)
+            # Contar número de páginas
+            num_pages = sum(1 for _ in PDFPage.create_pages(document))
+            print(f"  Number of Pages: {num_pages}")
+            
             if document.info:
                 for metadata in document.info:
                     for key, value in metadata.items():
@@ -55,6 +82,18 @@ def analyze_pdf(file_path):
                             print(f"  Producer: {value_decoded}")
                         else:
                             print(f"  {key_decoded}: {value_decoded}")
+
+                        # Procurar por URLs nos metadados
+                        urls = re.findall(r'https?://[^\s]+', value_decoded)
+                        if urls:
+                            print("  URLs Found in Metadata:")
+                            for url in urls:
+                                print(f"    - {url}")
+
+                        # Procurar por sistemas operacionais nos metadados
+                        match = re.search(r'\b(Windows|Linux|macOS|Ubuntu|Fedora|Android)\b', value_decoded, re.IGNORECASE)
+                        if match:
+                            os_detected.add(match.group())
             else:
                 print("  Not Found.")
     except PDFSyntaxError as e:
@@ -74,13 +113,28 @@ def analyze_pdf(file_path):
             else:
                 print("  No emails found.")
 
-            # Procurar por sistemas operacionais ou softwares
-            print("\nSearching for operating system or software information:")
-            os_info = re.findall(r'(Windows|Linux|macOS|Ubuntu|Fedora|Android)[\s\w\d.]*', text, re.IGNORECASE)
+            # Procurar por URLs no texto
+            print("\nSearching for URLs:")
+            urls = re.findall(r'https?://[^\s]+', text)
+            if urls:
+                print("  URLs Found:")
+                for url in urls:
+                    print(f"    - {url}")
+            else:
+                print("  No URLs found.")
+
+            # Procurar sistemas operacionais no texto
+            print("\nSearching for operating system information:")
+            os_info = re.findall(r'\b(Windows|Linux|macOS|Ubuntu|Fedora|Android)\b', text, re.IGNORECASE)
             if os_info:
-                print(f"  Operating systems mentioned: {', '.join(set(os_info))}")
+                os_detected.update(os_info)
+
+            # Mostrar apenas os sistemas operacionais detectados
+            if os_detected:
+                print(f"\nOperating systems identified: {', '.join(set(os_detected))}")
             else:
                 print("  No operating system information identified.")
+
         else:
             print("No text extracted.")
     except Exception as e:
@@ -90,7 +144,10 @@ def analyze_pdf(file_path):
 
 
 if __name__ == "__main__":
+    # Configuração para autocomplete no terminal
+    readline.set_completer(complete_path)
+    readline.parse_and_bind("tab: complete")
+    
     # Caminho para o arquivo PDF a ser analisado
     pdf_file_path = input("Enter the PDF file path: ").strip()
     analyze_pdf(pdf_file_path)
-
