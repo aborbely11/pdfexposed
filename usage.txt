@@ -1,2 +1,2 @@
-python pdfexposed.py
+python3 pdfexposed.py
 Enter the PDF file path: /home/kali/Downloads/cv.pdf
