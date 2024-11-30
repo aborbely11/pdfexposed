@@ -48,7 +48,7 @@ def analyze_pdf(file_path):
                         value_decoded = decode_with_fallback(value)
                         
                         if "author" in key_decoded.lower():
-                            print(f"→ Author encontrado nos metadados: {value_decoded}")
+                            print(f"→ Author is: {value_decoded}")
                         elif "creator" in key_decoded.lower():
                             print(f"  Creator: {value_decoded}")
                         elif "producer" in key_decoded.lower():
