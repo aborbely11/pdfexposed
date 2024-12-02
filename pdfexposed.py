@@ -154,6 +154,34 @@ def analyze_pdf(file_path):
     except Exception as e:
         print(Fore.RED + f"General error analyzing metadata: {e}\n")
 
+    # Extrair texto do PDF
+    try:
+        text = extract_text(file_path)
+        if text.strip():
+            # Procurar por e-mails no texto
+            print(Fore.BLUE + "Searching for e-mails:")
+            emails = re.findall(r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}', text)
+            if emails:
+                print(Fore.YELLOW + "  - E-mails Found:")
+                for email in emails:
+                    print(Fore.GREEN + f"    {email}")
+            else:
+                print(Fore.RED + "  No emails found.")
+
+            # Procurar por URLs no texto
+            print(Fore.BLUE + "\nSearching for URLs:")
+            urls = re.findall(r'https?://[^\s]+', text)
+            if urls:
+                print(Fore.YELLOW + "  - URLs Found:")
+                for url in urls:
+                    print(Fore.GREEN + f"    {url}")
+            else:
+                print(Fore.RED + "  No URLs found.")
+        else:
+            print(Fore.RED + "No text extracted.")
+    except Exception as e:
+        print(Fore.RED + f"Error extracting text: {e}")
+
     print(Fore.CYAN + "\nAnalysis Completed!\n")
 
 
