@@ -57,6 +57,10 @@ def analyze_pdf(file_path):
     print(f"- Size: {os.path.getsize(file_path)} bytes\n")
 
     os_detected = set()
+    creation_date = None
+    modification_date = None
+    producer = None
+    creator = None
 
     # Analisar metadados e número de páginas
     print("Metadata:")
@@ -73,29 +77,46 @@ def analyze_pdf(file_path):
                     for key, value in metadata.items():
                         key_decoded = decode_with_fallback(key)
                         value_decoded = decode_with_fallback(value)
-                        
+
+                        # Identificar datas de criação e modificação
+                        if "creationdate" in key_decoded.lower():
+                            creation_date = value_decoded
+                        elif "moddate" in key_decoded.lower():
+                            modification_date = value_decoded
+
+                        # Identificar produtor e criador
+                        if "producer" in key_decoded.lower():
+                            producer = value_decoded
+                        elif "creator" in key_decoded.lower():
+                            creator = value_decoded
+
                         if "author" in key_decoded.lower():
                             print(f"→ Author is: {value_decoded}")
-                        elif "creator" in key_decoded.lower():
-                            print(f"  Creator: {value_decoded}")
-                        elif "producer" in key_decoded.lower():
-                            print(f"  Producer: {value_decoded}")
                         else:
                             print(f"  {key_decoded}: {value_decoded}")
 
-                        # Procurar por URLs nos metadados
-                        urls = re.findall(r'https?://[^\s]+', value_decoded)
-                        if urls:
-                            print("  URLs Found in Metadata:")
-                            for url in urls:
-                                print(f"    - {url}")
-
-                        # Procurar por sistemas operacionais nos metadados
-                        match = re.search(r'\b(Windows|Linux|macOS|Ubuntu|Fedora|Android)\b', value_decoded, re.IGNORECASE)
-                        if match:
-                            os_detected.add(match.group())
+            # Verificar metadados inconsistentes
+            print("\nMetadata Analysis:")
+            if creation_date and modification_date:
+                print(f"  Creation Date: {creation_date}")
+                print(f"  Modification Date: {modification_date}")
+                if creation_date != modification_date:
+                    print("  ⚠️ The metadata indicates the file has been modified.")
+                else:
+                    print("  ✅ No modifications detected in the metadata.")
             else:
-                print("  Not Found.")
+                print("  Unable to determine modification status (dates missing).")
+
+            # Verificar inconsistências no produtor ou criador
+            if producer:
+                print(f"  Producer: {producer}")
+                if "adobe" not in producer.lower() and "pdf" not in producer.lower():
+                    print("  ⚠️ Unusual Producer Detected.")
+            if creator:
+                print(f"  Creator: {creator}")
+                if "adobe" not in creator.lower() and "office" not in creator.lower():
+                    print("  ⚠️ Unusual Creator Detected.")
+
     except PDFSyntaxError as e:
         print(f"Error analyzing metadata: {e}\n")
     except Exception as e:
@@ -151,3 +172,4 @@ if __name__ == "__main__":
     # Caminho para o arquivo PDF a ser analisado
     pdf_file_path = input("Enter the PDF file path: ").strip()
     analyze_pdf(pdf_file_path)
+
