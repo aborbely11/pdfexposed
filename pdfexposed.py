@@ -61,6 +61,7 @@ def analyze_pdf(file_path):
     print(Fore.YELLOW + f"  - Size: {os.path.getsize(file_path)} bytes\n")
 
     os_detected = set()
+    emails_in_metadata = set()
     author_detected = None
     creation_date = None
     modification_date = None
@@ -82,10 +83,10 @@ def analyze_pdf(file_path):
                         key_decoded = decode_with_fallback(key)
                         value_decoded = decode_with_fallback(value)
 
-                        # Verificar o autor
-                        if "author" in key_decoded.lower():
-                            author_detected = value_decoded
-                            print(Fore.GREEN + f"  - Author: {value_decoded}")
+                        # Verificar e-mails nos metadados
+                        emails_found = re.findall(r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}', value_decoded)
+                        if emails_found:
+                            emails_in_metadata.update(emails_found)
 
                         # Identificar datas de criação e modificação
                         if "creationdate" in key_decoded.lower():
@@ -98,6 +99,10 @@ def analyze_pdf(file_path):
                             producer = value_decoded
                         elif "creator" in key_decoded.lower():
                             creator = value_decoded
+
+                        # Verificar se o autor está no metadado
+                        if "author" in key_decoded.lower() and not author_detected:
+                            author_detected = value_decoded
 
                         # Procurar sistemas operacionais nos metadados
                         os_in_metadata = re.findall(r'\((Windows|Linux|macOS|Ubuntu|Fedora|Android)\)', value_decoded, re.IGNORECASE)
@@ -112,6 +117,16 @@ def analyze_pdf(file_path):
 
                         # Exibir os demais metadados
                         print(Fore.GREEN + f"    {key_decoded}: {value_decoded}")
+
+            # Exibir e-mails encontrados nos metadados
+            if emails_in_metadata:
+                print(Fore.BLUE + "\nE-mails Found in Metadata:")
+                for email in emails_in_metadata:
+                    print(Fore.GREEN + f"  - {email}")
+
+            # Exibir autor detectado
+            if author_detected:
+                print(Fore.GREEN + f"\nAuthor Detected: {author_detected}")
 
             # Analisar possíveis modificações no campo "Author"
             print(Fore.BLUE + "\nAuthor Analysis:")
@@ -159,11 +174,11 @@ def analyze_pdf(file_path):
         text = extract_text(file_path)
         if text.strip():
             # Procurar por e-mails no texto
-            print(Fore.BLUE + "Searching for e-mails:")
-            emails = re.findall(r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}', text)
-            if emails:
+            print(Fore.BLUE + "\nSearching for e-mails in Text:")
+            emails_in_text = re.findall(r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}', text)
+            if emails_in_text:
                 print(Fore.YELLOW + "  - E-mails Found:")
-                for email in emails:
+                for email in emails_in_text:
                     print(Fore.GREEN + f"    {email}")
             else:
                 print(Fore.RED + "  No emails found.")
