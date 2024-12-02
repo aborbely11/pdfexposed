@@ -1,11 +1,15 @@
 import os
 import re
 import readline  # Para autocomplete no Linux
+from colorama import Fore, Style, init
 from pdfminer.high_level import extract_text
 from pdfminer.pdfparser import PDFSyntaxError
 from pdfminer.pdfdocument import PDFDocument
 from pdfminer.pdfparser import PDFParser
 from pdfminer.pdfpage import PDFPage
+
+# Inicializa o colorama para suportar cores no terminal
+init(autoreset=True)
 
 # Lista de encodings comuns para tentar
 ENCODINGS = ['utf-8', 'latin-1', 'utf-16', 'utf-16le', 'utf-16be', 'ascii', 'cp1252']
@@ -43,34 +47,34 @@ def analyze_pdf(file_path):
 
     # Verificar se o arquivo existe
     if not os.path.exists(file_path):
-        print("File not Found!")
+        print(Fore.RED + "File not Found!")
         return
 
     # Mostrar onde o arquivo está salvo
-    print(f"File Location: {os.path.abspath(file_path)}\n")
+    print(Fore.CYAN + f"File Location: {os.path.abspath(file_path)}\n")
 
-    print(f"Analyzing the file: {file_path}\n")
+    print(Fore.CYAN + f"Analyzing the file: {file_path}\n")
 
     # Detalhes básicos do arquivo
-    print("Path Details:")
-    print(f"- Filename: {os.path.basename(file_path)}")
-    print(f"- Size: {os.path.getsize(file_path)} bytes\n")
+    print(Fore.BLUE + "Path Details:")
+    print(Fore.YELLOW + f"  - Filename: {os.path.basename(file_path)}")
+    print(Fore.YELLOW + f"  - Size: {os.path.getsize(file_path)} bytes\n")
 
     os_detected = set()
+    author_detected = None
     creation_date = None
     modification_date = None
     producer = None
     creator = None
+    export_path = None  # Para armazenar o possível path de exportação
 
-    # Analisar metadados e número de páginas
-    print("Metadata:")
     try:
         with open(file_path, 'rb') as f:
             parser = PDFParser(f)
             document = PDFDocument(parser)
             # Contar número de páginas
             num_pages = sum(1 for _ in PDFPage.create_pages(document))
-            print(f"  Number of Pages: {num_pages}")
+            print(Fore.YELLOW + f"  - Number of Pages: {num_pages}")
             
             if document.info:
                 for metadata in document.info:
@@ -78,90 +82,79 @@ def analyze_pdf(file_path):
                         key_decoded = decode_with_fallback(key)
                         value_decoded = decode_with_fallback(value)
 
+                        # Verificar o autor
+                        if "author" in key_decoded.lower():
+                            author_detected = value_decoded
+                            print(Fore.GREEN + f"  - Author: {value_decoded}")
+
                         # Identificar datas de criação e modificação
                         if "creationdate" in key_decoded.lower():
                             creation_date = value_decoded
                         elif "moddate" in key_decoded.lower():
                             modification_date = value_decoded
 
-                        # Identificar produtor e criador
+                        # Produtor e Criador
                         if "producer" in key_decoded.lower():
                             producer = value_decoded
                         elif "creator" in key_decoded.lower():
                             creator = value_decoded
 
-                        if "author" in key_decoded.lower():
-                            print(f"→ Author is: {value_decoded}")
-                        else:
-                            print(f"  {key_decoded}: {value_decoded}")
+                        # Procurar sistemas operacionais nos metadados
+                        os_in_metadata = re.findall(r'\((Windows|Linux|macOS|Ubuntu|Fedora|Android)\)', value_decoded, re.IGNORECASE)
+                        if os_in_metadata:
+                            print(Fore.GREEN + f"    → Operating System(s) found in metadata ({key_decoded}): {', '.join(os_in_metadata)}")
+                            os_detected.update(os_in_metadata)
 
-            # Verificar metadados inconsistentes
-            print("\nMetadata Analysis:")
-            if creation_date and modification_date:
-                print(f"  Creation Date: {creation_date}")
-                print(f"  Modification Date: {modification_date}")
-                if creation_date != modification_date:
-                    print("  ⚠️ The metadata indicates the file has been modified.")
+                        # Verificar se há um caminho no metadado
+                        if re.search(r'(C:\\|/home/|/Users/)', value_decoded, re.IGNORECASE):
+                            export_path = value_decoded
+                            print(Fore.GREEN + f"  Possible Export Path Detected in {key_decoded}: {value_decoded}")
+
+                        # Exibir os demais metadados
+                        print(Fore.GREEN + f"    {key_decoded}: {value_decoded}")
+
+            # Analisar possíveis modificações no campo "Author"
+            print(Fore.BLUE + "\nAuthor Analysis:")
+            if author_detected:
+                if creation_date and modification_date:
+                    print(Fore.YELLOW + f"  - Creation Date: {creation_date}")
+                    print(Fore.YELLOW + f"  - Modification Date: {modification_date}")
+                    if creation_date != modification_date:
+                        print(Fore.RED + "  ⚠️ The metadata indicates the file was modified.")
+                        print(Fore.RED + "    Note: This may suggest the 'Author' field was changed.")
+                    else:
+                        print(Fore.GREEN + "  ✅ No modifications detected in the dates.")
                 else:
-                    print("  ✅ No modifications detected in the metadata.")
+                    print(Fore.RED + "  Unable to determine modification status (dates missing).")
             else:
-                print("  Unable to determine modification status (dates missing).")
+                print(Fore.RED + "  No 'Author' field detected in metadata.")
 
             # Verificar inconsistências no produtor ou criador
-            if producer:
-                print(f"  Producer: {producer}")
-                if "adobe" not in producer.lower() and "pdf" not in producer.lower():
-                    print("  ⚠️ Unusual Producer Detected.")
-            if creator:
-                print(f"  Creator: {creator}")
-                if "adobe" not in creator.lower() and "office" not in creator.lower():
-                    print("  ⚠️ Unusual Creator Detected.")
+            if producer and creator:
+                print(Fore.YELLOW + f"  - Producer: {producer}")
+                print(Fore.YELLOW + f"  - Creator: {creator}")
+                if producer != creator:
+                    print(Fore.RED + "  ⚠️ Producer and Creator fields do not match, suggesting possible edits.")
+            elif producer or creator:
+                print(Fore.YELLOW + f"  - Producer: {producer or 'Not found'}")
+                print(Fore.YELLOW + f"  - Creator: {creator or 'Not found'}")
+
+            # Imprimir sistemas operacionais encontrados
+            if os_detected:
+                print(Fore.GREEN + f"\nOperating Systems identified in metadata: {', '.join(set(os_detected))}")
+
+            # Resultado final para o caminho de exportação
+            if export_path:
+                print(Fore.CYAN + f"\nDetected Export Path: {export_path}")
+            else:
+                print(Fore.RED + "No export path could be identified.")
 
     except PDFSyntaxError as e:
-        print(f"Error analyzing metadata: {e}\n")
+        print(Fore.RED + f"Error analyzing metadata: {e}\n")
     except Exception as e:
-        print(f"General error analyzing metadata: {e}\n")
+        print(Fore.RED + f"General error analyzing metadata: {e}\n")
 
-    # Extrair texto do PDF
-    try:
-        text = extract_text(file_path)
-        if text.strip():
-            # Procurar por e-mails no texto
-            print("Searching for e-mails:")
-            emails = re.findall(r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}', text)
-            if emails:
-                print(f"  E-mails Found: {', '.join(emails)}")
-            else:
-                print("  No emails found.")
-
-            # Procurar por URLs no texto
-            print("\nSearching for URLs:")
-            urls = re.findall(r'https?://[^\s]+', text)
-            if urls:
-                print("  URLs Found:")
-                for url in urls:
-                    print(f"    - {url}")
-            else:
-                print("  No URLs found.")
-
-            # Procurar sistemas operacionais no texto
-            print("\nSearching for operating system information:")
-            os_info = re.findall(r'\b(Windows|Linux|macOS|Ubuntu|Fedora|Android)\b', text, re.IGNORECASE)
-            if os_info:
-                os_detected.update(os_info)
-
-            # Mostrar apenas os sistemas operacionais detectados
-            if os_detected:
-                print(f"\nOperating systems identified: {', '.join(set(os_detected))}")
-            else:
-                print("  No operating system information identified.")
-
-        else:
-            print("No text extracted.")
-    except Exception as e:
-        print(f"Error extracting text: {e}")
-
-    print("\nAnalysis Completed!\n")
+    print(Fore.CYAN + "\nAnalysis Completed!\n")
 
 
 if __name__ == "__main__":
@@ -170,6 +163,5 @@ if __name__ == "__main__":
     readline.parse_and_bind("tab: complete")
     
     # Caminho para o arquivo PDF a ser analisado
-    pdf_file_path = input("Enter the PDF file path: ").strip()
+    pdf_file_path = input(Fore.CYAN + "Enter the PDF file path: ").strip()
     analyze_pdf(pdf_file_path)
-
