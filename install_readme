@@ -1,3 +1,5 @@
 (Debian/Ubuntu) sudo apt install python3 python3-pip
 (CentOS/RHEL) sudo yum install -y python3 python3-pip
-(Gentoo) emerge --ask dev-lang/python:3.11 && emerge --ask dev-python/pip
+
+
+pip install -r requirements.txt OR pip3 install -r requirements.txt
