@@ -1,2 +1,2 @@
-pdfminer.six
+pdfminer.six==20201018
 colorama
