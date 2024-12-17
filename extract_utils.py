@@ -2,7 +2,7 @@ import re
 from colorama import Fore
 from pdfminer.high_level import extract_text
 from pdfminer.pdfparser import PDFParser
-from pdfminer.pdfdocument import PDFDocument
+from pdfminer.pdfdocument import PDFDocument, PDFEncryptionError
 
 def decode_with_fallback(value):
     """
@@ -16,20 +16,24 @@ def decode_with_fallback(value):
             continue
     return value
 
-def extract_selected_information(file_path):
+def extract_selected_information(file_path, password=None):
     """
-    Extrai e-mails, URLs e metadados do PDF.
+    Extrai e-mails, URLs e metadados do PDF, usando a senha se necessário.
     """
     print(Fore.CYAN + "\nExtracting Emails, URLs, and Metadata...\n")
 
     emails_found = set()
     urls_found = set()
+    operating_system = None
 
     try:
-        # Extrai texto e busca por e-mails e URLs
-        text = extract_text(file_path)
-        emails_found.update(re.findall(r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}', text))
-        urls_found.update(re.findall(r'https?://[^\s]+', text))
+        # Extrai texto usando a senha
+        print(Fore.BLUE + "Extracting Text...")
+        text = extract_text(file_path, password=password)  # Senha é passada aqui
+        if text:
+            # Busca por e-mails e URLs no texto
+            emails_found.update(re.findall(r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}', text))
+            urls_found.update(re.findall(r'https?://[^\s]+', text))
 
         # Exibe e-mails encontrados
         if emails_found:
@@ -43,27 +47,33 @@ def extract_selected_information(file_path):
             for url in urls_found:
                 print(Fore.GREEN + url)
 
-        # Extrai metadados do PDF
-        print(Fore.CYAN + "\nExtracting PDF Metadata...")
+        # Extrai metadados usando a senha
+        print(Fore.BLUE + "\nExtracting PDF Metadata...")
         with open(file_path, 'rb') as f:
             parser = PDFParser(f)
-            document = PDFDocument(parser)
+            document = PDFDocument(parser, password=password)
             if document.info:
                 for metadata in document.info:
                     for key, value in metadata.items():
                         key_decoded = decode_with_fallback(key)
                         value_decoded = decode_with_fallback(value)
+
+                        # Exibe todos os metadados
                         print(Fore.BLUE + f"  {key_decoded}: {value_decoded}")
 
-                        # Extrai informações específicas do metadado
-                        if "author" in key_decoded.lower():
-                            print(Fore.YELLOW + f"  Author: {value_decoded}")
-                        if "creationdate" in key_decoded.lower():
-                            print(Fore.YELLOW + f"  Creation Date: {value_decoded}")
-                        if "moddate" in key_decoded.lower():
-                            print(Fore.YELLOW + f"  Modification Date: {value_decoded}")
-                        if "os" in key_decoded.lower():
-                            print(Fore.YELLOW + f"  Operating System: {value_decoded}")
+                        # Identificar sistema operacional no campo Producer
+                        if "producer" in key_decoded.lower():
+                            os_match = re.search(r'\((Windows|Linux|macOS|Ubuntu|Fedora|Android)\)', value_decoded, re.IGNORECASE)
+                            if os_match:
+                                operating_system = os_match.group(1)
 
+        # Exibe sistema operacional detectado no Producer
+        if operating_system:
+            print(Fore.YELLOW + f"\nOperating System Detected (via Producer): {operating_system}")
+        else:
+            print(Fore.RED + "\nNo Operating System detected in Producer metadata.")
+
+    except PDFEncryptionError:
+        print(Fore.RED + "Error: Incorrect password provided.")
     except Exception as e:
         print(Fore.RED + f"Error extracting information: {e}")
