@@ -1,2 +1,13 @@
-python3 pdfexposed.py
-Enter the PDF file path: /home/kali/Downloads/cv.pdf
+ ### Usage
+
+1. **Start the Tool**:
+   - Run the `pdfexposed.py` script in your terminal.
+
+2. **Enter PDF Path**:
+   - Provide the path to the PDF file you wish to analyze.
+
+3. **Choose an Option**:
+   - `[1] Search in PDF`: Search for specific text or patterns.
+   - `[2] Extract Emails/URLs and Metadata`: Extract key data from the PDF.
+   - `[3] Check Document Integrity`: Verify metadata and document consistency.
+   - `[9] Exit`: Exit the program.
