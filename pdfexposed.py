@@ -61,8 +61,7 @@ def analyze_pdf(file_path):
         print("[3] Check Document Integrity")
         print("[9] Exit")
         
-        
-choice = input(Fore.CYAN + "Enter your choice: ").strip()
+        choice = input(Fore.CYAN + "Enter your choice: ").strip()
 
         if choice == '1':
             search_query = input(Fore.CYAN + "Enter text/regex to search: ").strip()
