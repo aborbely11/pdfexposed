@@ -25,6 +25,7 @@ def extract_selected_information(file_path, password=None):
     emails_found = set()
     urls_found = set()
     operating_system = None
+    metadata_fields = {}
 
     try:
         # Extrai texto usando a senha
@@ -58,14 +59,20 @@ def extract_selected_information(file_path, password=None):
                         key_decoded = decode_with_fallback(key)
                         value_decoded = decode_with_fallback(value)
 
-                        # Exibe todos os metadados
-                        print(Fore.BLUE + f"  {key_decoded}: {value_decoded}")
+                        # Armazena todos os metadados encontrados
+                        metadata_fields[key_decoded] = value_decoded
 
                         # Identificar sistema operacional no campo Producer
                         if "producer" in key_decoded.lower():
                             os_match = re.search(r'\((Windows|Linux|macOS|Ubuntu|Fedora|Android)\)', value_decoded, re.IGNORECASE)
                             if os_match:
                                 operating_system = os_match.group(1)
+
+        # Exibe todos os metadados coletados
+        if metadata_fields:
+            print(Fore.YELLOW + "\nMetadata Found:")
+            for key, value in metadata_fields.items():
+                print(Fore.BLUE + f"  {key}: {value}")
 
         # Exibe sistema operacional detectado no Producer
         if operating_system:
