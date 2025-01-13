@@ -1,4 +1,5 @@
 🚀 **Uncover the Secrets Hidden in PDFs!** 🔍
+![investigador_caveira_smaller](https://github.com/user-attachments/assets/f3dad204-7991-415d-b740-608c0b2c18ac)
 
 📄 A powerful **Python tool** for forensic PDF analysis:
 ✨ Extract **metadata**
@@ -7,7 +8,6 @@
 💻 Discover **OS details and more**
 🔒 Detect **encrypted files** and unlock them with the correct password
 
-![investigador_caveira](https://github.com/user-attachments/assets/ba9c6a66-b1c5-4ed3-ad80-9c103a620e4f)
 
 ☕ **Love the project?** Keep it running by supporting us: [Buy me a coffee!](#)
 
