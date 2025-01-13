@@ -21,5 +21,3 @@ ETH: 0xDE297fCB8916612C484ABd39a4D54B2f56cbe27B
 🤝 **Collaborator:** Adriano Vallim
 
 Get started today and reveal the stories your PDFs are hiding!
-
-## PDFExposed
