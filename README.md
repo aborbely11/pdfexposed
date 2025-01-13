@@ -11,11 +11,8 @@
 🔒 Detect **encrypted files** and unlock them with the correct password
 
 
-☕ **Love the project?** Keep it running by supporting us: [Buy me a coffee!](#)
+☕ **Love the project?**  ☕ Buy me a coffee: https://github.com/sponsors/aborbely11 💻❤️
 
-BTC: bc1qvrvhjz4cdlaz2h7zlq2a5qk23vu9uwdqe4ah4l
-
-ETH: 0xDE297fCB8916612C484ABd39a4D54B2f56cbe27B
 
 👨‍💻 **Created by:** Artur Borbely
 🤝 **Collaborator:** Adriano Vallim
