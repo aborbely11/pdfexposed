@@ -18,3 +18,5 @@
 🤝 **Collaborator:** Adriano Vallim
 
 Get started today and reveal the stories your PDFs are hiding!
+
+![Peek 2025-01-13 08-24](https://github.com/user-attachments/assets/5a53bb5f-5647-4951-b837-c28417da60d8)
