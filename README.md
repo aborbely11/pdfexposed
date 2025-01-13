@@ -1,4 +1,6 @@
 🚀 **Uncover the Secrets Hidden in PDFs!** 🔍
+
+
 ![investigador_caveira_smaller](https://github.com/user-attachments/assets/f3dad204-7991-415d-b740-608c0b2c18ac)
 
 📄 A powerful **Python tool** for forensic PDF analysis:
