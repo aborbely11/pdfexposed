@@ -57,7 +57,7 @@ def analyze_pdf(file_path):
     while True:
         print(Fore.CYAN + "\nChoose an option:")
         print("[1] Search in PDF")
-        print("[2] Extract Emails/URLs and Metadata")
+        print("[2] Extract Emails/URL/CPF/CNPJ/ and much more")
         print("[3] Check Document Integrity")
         print("[9] Exit")
         
