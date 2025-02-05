@@ -19,4 +19,5 @@
 
 Get started today and reveal the stories your PDFs are hiding!
 
-![Peek 2025-01-13 08-24](https://github.com/user-attachments/assets/5a53bb5f-5647-4951-b837-c28417da60d8)
+![Peek 2025-02-05 05-49](https://github.com/user-attachments/assets/ac53dd8a-884d-4c61-94b9-33621078a3db)
+
